@@ -1,23 +1,23 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+#!/usr/bin/python
 
+import re
 import time
 import os
 import requests
 from lxml import html
 
-USERNAME = "your student no here"
-PASSOWORD = "your password"
+USERNAME = "1401120585"
+PASSOWORD = "190255"
 
-BASE_URL = "http://pay.xidian.edu.cn"
+BASE_URL = "http://zyzfw.xidian.edu.cn:8800/"
 
-FORM_URL = "/servlet/login"
-PAY_INFO_URL = "/swyh/dyll.jsp"
+FORM_URL = "http://zyzfw.xidian.edu.cn:8800/index.php?action=login"
+PAY_INFO_URL = "http://zyzfw.xidian.edu.cn:8800/index.php"
 
 TMP_DIR = os.path.expanduser("~/.xidian/")
 IMG_PATH = os.path.join(TMP_DIR, "img.jpg")
 TEXT_PATH = os.path.join(TMP_DIR, "result.txt")
-
 
 def make_data_and_cookies():
     """make the post data(including vcode) and get cookies"""
@@ -26,8 +26,8 @@ def make_data_and_cookies():
     while len(vcode) is not 4:
         r = requests.get(BASE_URL)
         doc = html.document_fromstring(r.text)
-        vcode_link = doc.cssselect('form img')[0].get('src')
-        vcv = doc.cssselect('input[name="vcv"]')[0].get('value')
+
+        vcode_link = doc.cssselect('form img')[3].get('src')
         img_url = BASE_URL + vcode_link
         img = requests.get(img_url)
 
@@ -36,34 +36,40 @@ def make_data_and_cookies():
             f.write(img.content)
 
         # using tesseract to get the vcode img value
-        os.popen('tesseract %s %s' % (IMG_PATH, TEXT_PATH[:-4]))
+        try:
+            os.popen('tesseract %s %s' % (IMG_PATH, TEXT_PATH[:-4]))
+        except:
+            print "open tesseract error"
         with open(TEXT_PATH) as f:
             vcode = f.read().strip('\n')
 
     data = {
-            "account": USERNAME,
+            "username": USERNAME,
             "password": PASSOWORD,
-            "vcode": vcode,
-            "vcv": vcv
+            "checkcode": vcode,
+            "ts": "login"
             }
     return data, r.cookies
 
 
 def submit_form(data, cookies):
     """submit the login form so you're logined in"""
-    form_action_url = BASE_URL + FORM_URL
-    requests.post(form_action_url, data=data, cookies=cookies)
+    form_action_url = FORM_URL
+    r = requests.post(form_action_url, data=data, cookies=cookies)
 
 
 def get_info(cookies):
     """retrieve the data using the cookies"""
-    info_url = BASE_URL + PAY_INFO_URL
+    info_url = PAY_INFO_URL
     r = requests.get(info_url, cookies=cookies)
     doc = html.document_fromstring(r.text)
-    used, rest = doc.cssselect('tr')
-    used_gb = float(used.findall('td')[1].text) / 1024
-    rest_gb = float(rest.findall('td')[1].text) / 1024
-    return used_gb, rest_gb
+    used_gb = 0
+    rest_gb = 0
+    #items = re.findall('<td class="title td_content">(.*?)</td>',r.text, re.S)
+    messageList = doc.cssselect('div table tbody tr td')[41].text_content()
+    lMsg = messageList.strip().split("\n")
+    for i in lMsg:
+        print i.strip()
 
 if __name__ == '__main__':
     if not os.path.exists(TMP_DIR):
@@ -73,8 +79,7 @@ if __name__ == '__main__':
         submit_form(data, cookies)
         time.sleep(1)
         try:
-            result = get_info(cookies)
+            get_info(cookies)
             break
         except:
             time.sleep(1)
-    print "此月已使用流量 %.2fGB, 剩余 %.2f GB" % (result)

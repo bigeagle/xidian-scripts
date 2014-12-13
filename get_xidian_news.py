@@ -6,7 +6,7 @@ from lxml import html
 from datetime import datetime, timedelta
 
 # get news in last X days
-DAY = 3
+DAY = 30
 
 # url of the news page
 BASE_URL = "http://see.xidian.edu.cn/"
