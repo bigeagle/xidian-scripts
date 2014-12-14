@@ -22,8 +22,8 @@ import os
 import requests
 from lxml import html
 
-USERNAME = "1401120585"
-PASSOWORD = "190255"
+USERNAME = "your student no. here"
+PASSOWORD = "your passoword"
 
 BASE_URL = "http://zyzfw.xidian.edu.cn:8800/"
 FORM_URL = "http://zyzfw.xidian.edu.cn:8800/index.php?action=login"
