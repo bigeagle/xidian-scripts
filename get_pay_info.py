@@ -93,7 +93,7 @@ def get_info(cookies):
     r = requests.get(info_url, cookies=cookies)
     doc = html.document_fromstring(r.text)
     #items = re.findall('<td class="title td_content">(.*?)</td>',r.text, re.S)
-    messageList = doc.cssselect('div table tbody tr td')[41].text_content()
+    messageList = doc.cssselect('div table tbody tr td')[43].text_content()
     lMsg = messageList.strip().split("\n")
     for i in lMsg:
         print i.strip()
